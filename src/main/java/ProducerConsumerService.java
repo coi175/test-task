@@ -1,13 +1,23 @@
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class ProducerConsumerService
 {
+    private static final Logger log = Logger.getLogger(ProducerConsumerService.class);
     private final List<Integer> randoms = new ArrayList<>();
-    private static final int RANDOM_NUMBER_RANGE = 100;
-    private static final int RANDOM_NUMBERS_COUNT = 100;
-    private static final int THREADS_SLEEP_TIME = 1000;
+    private int randomNumberRange;
+    private int randomNumberCount;
+    private int threadsSleepTime;
+
+    public ProducerConsumerService(final int randomNumberRange, final int randomNumberCount, final int threadsSleepTime) {
+        this.randomNumberRange = randomNumberRange;
+        this.randomNumberCount = randomNumberCount;
+        this.threadsSleepTime = threadsSleepTime;
+    }
+
     public void startThreads()
     {
         producer.start();
@@ -18,24 +28,26 @@ public class ProducerConsumerService
     {
         while (true)
         {
-            Integer numsCount = new Random().nextInt(RANDOM_NUMBERS_COUNT);
             synchronized (randoms) {
+                log.info("Producer started writing");
+                Integer numsCount = new Random().nextInt(randomNumberCount);
                 for (int i = 0; i < numsCount; i++)
                 {
-                    Integer number = new Random().nextInt(RANDOM_NUMBER_RANGE);
+                    Integer number = new Random().nextInt(randomNumberRange);
                     randoms.add(number);
                     System.out.print(number + " ");
                 }
+                log.info("Producer finished writing");
                 System.out.println("\n Wrote by producer");
             }
 
             try
             {
-                Thread.sleep(THREADS_SLEEP_TIME);
+                Thread.sleep(threadsSleepTime);
             }
             catch (InterruptedException e)
             {
-                e.printStackTrace();
+                log.error("Error with producer sleep");
             }
         }
     });
@@ -45,17 +57,20 @@ public class ProducerConsumerService
         while (true)
         {
             synchronized (randoms) {
+                log.info("Consumer started reading");
                 randoms.forEach(x -> System.out.print(x + " "));
+                log.info("Consumer finished reading");
                 randoms.clear();
+                log.info("Consumer cleared randoms");
                 System.out.println("\n Read by consumer");
             }
 
             try
             {
-                Thread.sleep(THREADS_SLEEP_TIME);
+                Thread.sleep(threadsSleepTime);
             }
             catch (InterruptedException e) {
-
+                log.error("Error with consumer sleep");
             }
         }
     });
